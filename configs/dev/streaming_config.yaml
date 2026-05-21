@@ -5,6 +5,7 @@ project:
 event_hubs:
   bootstrap_servers: ehns-fraud360.servicebus.windows.net:9093
   topic: fraud-transactions
+  consumer_group: databricks-bronze-cg
   secret_scope: fraud360
   connection_secret_key: eventhubs-conn-string
 

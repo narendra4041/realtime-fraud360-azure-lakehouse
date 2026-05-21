@@ -53,6 +53,8 @@ TRIGGER_INTERVAL = config["bronze"]["trigger_interval"]
 
 CHECKPOINT_SUBPATH = config["bronze"]["checkpoint_subpath"]
 
+CONSUMER_GROUP = config["event_hubs"]["consumer_group"]
+
 BRONZE_TABLE = (
     f"{CATALOG}.{BRONZE_SCHEMA}.{BRONZE_TABLE_NAME}"
 )
