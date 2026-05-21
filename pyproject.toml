@@ -1,0 +1,32 @@
+[project]
+name = "realtime-fraud360-azure-lakehouse"
+version = "0.1.0"
+description = "Real-time Fraud 360 Azure Lakehouse using Event Hubs, Databricks, Delta Lake, Snowflake, and dbt"
+readme = "README.md"
+requires-python = ">=3.11,<3.13"
+
+dependencies = [
+  "confluent-kafka==2.6.1",
+  "faker==30.8.2",
+  "python-dotenv==1.0.1",
+  "pyyaml>=6.0.2"
+]
+
+[dependency-groups]
+dev = [
+  "ipykernel>=6.29.5",
+  "pytest>=8.3.3",
+  "ruff>=0.7.0",
+  "black>=24.10.0"
+]
+
+[tool.uv]
+package = false
+
+[tool.black]
+line-length = 88
+target-version = ["py311"]
+
+[tool.ruff]
+line-length = 88
+target-version = "py311"

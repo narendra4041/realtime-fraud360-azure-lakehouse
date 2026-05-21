@@ -1,0 +1,25 @@
+project:
+  name: fraud360
+  environment: dev
+
+event_hubs:
+  bootstrap_servers: ehns-fraud360.servicebus.windows.net:9093
+  topic: fraud-transactions
+  secret_scope: fraud360
+  connection_secret_key: eventhubs-conn-string
+
+storage:
+  storage_account: stfraud360
+  bronze_container: bronze
+  silver_container: silver
+  checkpoint_container: checkpoints
+
+unity_catalog:
+  catalog: fraud360
+  bronze_schema: bronze
+  silver_schema: silver
+
+bronze:
+  table_name: transactions_raw
+  checkpoint_subpath: fraud360/bronze/transactions_raw
+  trigger_interval: 10 seconds
