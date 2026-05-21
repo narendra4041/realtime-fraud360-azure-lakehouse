@@ -79,7 +79,7 @@ event_hub_connection_string = dbutils.secrets.get(
 # =========================================================
 
 kafka_jaas_config = (
-    'org.apache.kafka.common.security.plain.PlainLoginModule required '
+    'kafkashaded.org.apache.kafka.common.security.plain.PlainLoginModule required '
     f'username="$ConnectionString" '
     f'password="{event_hub_connection_string}";'
 )
@@ -98,6 +98,7 @@ raw_kafka_df = (
     .option("kafka.sasl.jaas.config", kafka_jaas_config)
     .option("startingOffsets", "latest")
     .option("failOnDataLoss", "false")
+    .option("kafka.group.id", CONSUMER_GROUP)
     .load()
 )
 
