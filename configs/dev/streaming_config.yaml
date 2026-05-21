@@ -24,3 +24,10 @@ bronze:
   table_name: transactions_raw
   checkpoint_subpath: fraud360/bronze/transactions_raw
   trigger_interval: 10 seconds
+
+silver:
+  source_table: transactions_raw
+  target_table: transactions_clean
+  checkpoint_subpath: fraud360/silver/transactions_clean
+  trigger_interval: 10 seconds
+  watermark_delay: 10 minutes
