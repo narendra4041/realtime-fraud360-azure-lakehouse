@@ -2,6 +2,10 @@ resources:
   pipelines:
     fraud360_bronze_silver_pipeline:
       name: fraud360_${var.environment}_bronze_silver_pipeline
+
+      catalog: fraud360
+      target: bronze
+
       continuous: true
       serverless: false
 
