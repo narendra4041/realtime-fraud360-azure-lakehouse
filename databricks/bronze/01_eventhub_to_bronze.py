@@ -15,7 +15,13 @@ from pyspark.sql.functions import (
 from pathlib import Path
 import os
 
-ENV = os.getenv("ENV", "dev")
+import argparse
+
+parser = argparse.ArgumentParser()
+parser.add_argument("--env", default=os.getenv("ENV", "dev"))
+args, _ = parser.parse_known_args()
+
+ENV = args.env
 
 PROJECT_ROOT = Path.cwd().parent.parent
 

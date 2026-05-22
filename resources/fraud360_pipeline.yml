@@ -1,0 +1,18 @@
+resources:
+  pipelines:
+    fraud360_bronze_silver_pipeline:
+      name: fraud360_${var.environment}_bronze_silver_pipeline
+      continuous: true
+      serverless: false
+
+      libraries:
+        - file:
+            path: ../databricks/pipelines/fraud360_bronze_silver_pipeline.py
+
+      configuration:
+        ENV: ${var.environment}
+
+      clusters:
+        - label: default
+          num_workers: ${var.num_workers}
+          node_type_id: ${var.node_type_id}

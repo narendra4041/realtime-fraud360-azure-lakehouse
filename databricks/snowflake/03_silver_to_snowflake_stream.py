@@ -6,12 +6,16 @@ import yaml
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
 
+import argparse
 
+parser = argparse.ArgumentParser()
+parser.add_argument("--env", default=os.getenv("ENV", "dev"))
+args, _ = parser.parse_known_args()
+
+ENV = args.env
 # =========================================================
 # Load Config
 # =========================================================
-
-ENV = os.getenv("ENV", "dev")
 
 PROJECT_ROOT = Path.cwd().parent.parent
 

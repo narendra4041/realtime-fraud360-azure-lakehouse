@@ -1,0 +1,85 @@
+resources:
+  jobs:
+    fraud360_bronze_stream:
+      name: fraud360_${var.environment}_bronze_stream
+
+      job_clusters:
+        - job_cluster_key: fraud360_streaming_cluster
+          new_cluster:
+            spark_version: ${var.spark_version}
+            node_type_id: ${var.node_type_id}
+            num_workers: ${var.num_workers}
+            data_security_mode: SINGLE_USER
+            runtime_engine: PHOTON
+            spark_env_vars:
+              ENV: ${var.environment}
+
+      tasks:
+        - task_key: bronze_eventhub_to_delta
+          job_cluster_key: fraud360_streaming_cluster
+          libraries:
+            - pypi:
+                package: pyyaml
+          spark_python_task:
+            python_file: ../databricks/bronze/01_eventhub_to_bronze.py
+            parameters:
+              - "--env"
+              - "${var.environment}"
+
+    fraud360_silver_stream:
+      name: fraud360_${var.environment}_silver_stream
+
+      job_clusters:
+        - job_cluster_key: fraud360_streaming_cluster
+          new_cluster:
+            spark_version: ${var.spark_version}
+            node_type_id: ${var.node_type_id}
+            num_workers: ${var.num_workers}
+            data_security_mode: SINGLE_USER
+            runtime_engine: PHOTON
+
+            spark_env_vars:
+              ENV: ${var.environment}
+
+      tasks:
+        - task_key: silver_bronze_to_clean
+          job_cluster_key: fraud360_streaming_cluster
+          libraries:
+              - pypi:
+                  package: pyyaml
+          spark_python_task:
+            python_file: ../databricks/silver/02_bronze_to_silver.py
+            parameters:
+              - "--env"
+              - "${var.environment}"
+
+    fraud360_snowflake_stream:
+      name: fraud360_${var.environment}_snowflake_stream
+
+      job_clusters:
+        - job_cluster_key: fraud360_snowflake_cluster
+          new_cluster:
+            spark_version: ${var.spark_version}
+            node_type_id: ${var.node_type_id}
+            num_workers: ${var.num_workers}
+            data_security_mode: SINGLE_USER
+            runtime_engine: PHOTON
+
+            spark_env_vars:
+              ENV: ${var.environment}
+
+      tasks:
+        - task_key: snowflake_silver_export
+          job_cluster_key: fraud360_snowflake_cluster
+          libraries:
+              - pypi:
+                  package: pyyaml
+              - pypi:
+                  package: cryptography
+              - maven:
+                  coordinates: net.snowflake:spark-snowflake_2.12:3.1.1
+          spark_python_task:
+            python_file: ../databricks/snowflake/03_silver_to_snowflake_stream.py
+            parameters:
+              - "--env"
+              - "${var.environment}"

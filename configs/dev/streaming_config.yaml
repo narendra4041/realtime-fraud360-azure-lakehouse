@@ -53,3 +53,9 @@ silver_export:
   trigger_interval: 30 seconds
 
   mode: append
+
+pipeline:
+  bronze_table_fqn: fraud360.bronze.transactions_raw
+  silver_table_fqn: fraud360.silver.transactions_clean
+  bronze_comment: Bronze raw immutable transactions from Azure Event Hubs Kafka endpoint.
+  silver_comment: Silver cleaned and typed fraud transactions.

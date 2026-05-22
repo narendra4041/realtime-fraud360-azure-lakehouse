@@ -1,0 +1,29 @@
+bundle:
+  name: realtime-fraud360-azure-lakehouse
+
+include:
+  - resources/*.yml
+
+variables:
+  environment:
+    description: Deployment environment
+    default: dev
+
+  spark_version:
+    description: Databricks Runtime version
+    default: "14.3.x-scala2.12"
+
+  node_type_id:
+    description: Databricks node type
+    default: "Standard_D4s_v3"
+
+  num_workers:
+    description: Number of workers
+    default: 1
+
+targets:
+  dev:
+    mode: development
+    default: true
+    variables:
+      environment: dev
