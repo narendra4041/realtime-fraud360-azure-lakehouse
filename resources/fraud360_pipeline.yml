@@ -7,7 +7,7 @@ resources:
       target: bronze
 
       continuous: true
-      serverless: false
+      serverless: true
 
       libraries:
         - file:
@@ -16,7 +16,13 @@ resources:
       configuration:
         ENV: ${var.environment}
 
-      clusters:
-        - label: default
-          num_workers: ${var.num_workers}
-          node_type_id: ${var.node_type_id}
+        EVENT_HUB_BOOTSTRAP_SERVERS: ${var.event_hub_bootstrap_servers}
+        EVENT_HUB_TOPIC: ${var.event_hub_topic}
+        EVENT_HUB_CONSUMER_GROUP: ${var.event_hub_consumer_group}
+        EVENT_HUB_SECRET_SCOPE: ${var.event_hub_secret_scope}
+        EVENT_HUB_CONNECTION_SECRET_KEY: ${var.event_hub_connection_secret_key}
+
+        BRONZE_TABLE_FQN: ${var.bronze_table_fqn}
+        SILVER_TABLE_FQN: ${var.silver_table_fqn}
+
+        WATERMARK_DELAY: ${var.watermark_delay}

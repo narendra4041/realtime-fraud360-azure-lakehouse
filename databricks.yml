@@ -20,6 +20,31 @@ variables:
   num_workers:
     description: Number of workers
     default: 1
+  
+  event_hub_bootstrap_servers:
+    description: Azure Event Hubs Kafka bootstrap server
+
+  event_hub_topic:
+    description: Event Hub topic name
+
+  event_hub_consumer_group:
+    description: Event Hub consumer group
+
+  event_hub_secret_scope:
+    description: Databricks secret scope
+
+  event_hub_connection_secret_key:
+    description: Event Hub connection string secret key
+
+  bronze_table_fqn:
+    description: Bronze table fully qualified name
+
+  silver_table_fqn:
+    description: Silver table fully qualified name
+
+  watermark_delay:
+    description: Silver watermark delay
+    default: "10 minutes"
 
 targets:
   dev:

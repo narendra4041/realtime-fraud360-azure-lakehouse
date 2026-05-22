@@ -1,8 +1,5 @@
-import os
-import yaml
-from pathlib import Path
-
 from pyspark import pipelines as dp
+
 from pyspark.sql.functions import (
     col,
     current_timestamp,
@@ -13,6 +10,7 @@ from pyspark.sql.functions import (
     when,
     lit,
 )
+
 from pyspark.sql.types import (
     StructType,
     StructField,
@@ -23,23 +21,21 @@ from pyspark.sql.types import (
     MapType,
 )
 
-import argparse
 
-parser = argparse.ArgumentParser()
-parser.add_argument("--env", default=os.getenv("ENV", "dev"))
-args, _ = parser.parse_known_args()
+EVENT_HUB_BOOTSTRAP_SERVERS = spark.conf.get("EVENT_HUB_BOOTSTRAP_SERVERS")
+EVENT_HUB_TOPIC = spark.conf.get("EVENT_HUB_TOPIC")
+EVENT_HUB_CONSUMER_GROUP = spark.conf.get("EVENT_HUB_CONSUMER_GROUP")
+EVENT_HUB_SECRET_SCOPE = spark.conf.get("EVENT_HUB_SECRET_SCOPE")
+EVENT_HUB_CONNECTION_SECRET_KEY = spark.conf.get("EVENT_HUB_CONNECTION_SECRET_KEY")
 
-ENV = args.env
+BRONZE_TABLE_FQN = spark.conf.get("BRONZE_TABLE_FQN")
+SILVER_TABLE_FQN = spark.conf.get("SILVER_TABLE_FQN")
+WATERMARK_DELAY = spark.conf.get("WATERMARK_DELAY")
 
-PROJECT_ROOT = Path.cwd().parent.parent
-CONFIG_PATH = PROJECT_ROOT / "configs" / ENV / "streaming_config.yaml"
-
-with open(CONFIG_PATH, "r", encoding="utf-8") as file:
-    config = yaml.safe_load(file)
 
 event_hub_connection_string = dbutils.secrets.get(
-    scope=config["event_hubs"]["secret_scope"],
-    key=config["event_hubs"]["connection_secret_key"],
+    scope=EVENT_HUB_SECRET_SCOPE,
+    key=EVENT_HUB_CONNECTION_SECRET_KEY,
 )
 
 kafka_jaas_config = (
@@ -74,19 +70,19 @@ transaction_schema = StructType([
 
 
 @dp.table(
-    name=config["pipeline"]["bronze_table_fqn"],
-    comment=config["pipeline"]["bronze_comment"],
+    name=BRONZE_TABLE_FQN,
+    comment="Bronze raw immutable transactions from Azure Event Hubs Kafka endpoint.",
 )
 def transactions_raw():
     raw_kafka_df = (
         spark.readStream
         .format("kafka")
-        .option("kafka.bootstrap.servers", config["event_hubs"]["bootstrap_servers"])
-        .option("subscribe", config["event_hubs"]["topic"])
+        .option("kafka.bootstrap.servers", EVENT_HUB_BOOTSTRAP_SERVERS)
+        .option("subscribe", EVENT_HUB_TOPIC)
         .option("kafka.security.protocol", "SASL_SSL")
         .option("kafka.sasl.mechanism", "PLAIN")
         .option("kafka.sasl.jaas.config", kafka_jaas_config)
-        .option("kafka.group.id", config["event_hubs"]["consumer_group"])
+        .option("kafka.group.id", EVENT_HUB_CONSUMER_GROUP)
         .option("startingOffsets", "latest")
         .option("failOnDataLoss", "false")
         .load()
@@ -113,16 +109,14 @@ def transactions_raw():
 
 
 @dp.table(
-    name=config["pipeline"]["silver_table_fqn"],
-    comment=config["pipeline"]["silver_comment"],
+    name=SILVER_TABLE_FQN,
+    comment="Silver cleaned and typed fraud transactions.",
 )
 @dp.expect_or_drop("valid_event_id", "event_id IS NOT NULL")
 @dp.expect_or_drop("valid_transaction_id", "transaction_id IS NOT NULL")
 @dp.expect_or_drop("valid_amount", "amount > 0")
 def transactions_clean():
-    bronze_df = spark.readStream.table(
-        config["pipeline"]["bronze_table_fqn"]
-    )
+    bronze_df = spark.readStream.table(BRONZE_TABLE_FQN)
 
     parsed_df = (
         bronze_df
@@ -149,6 +143,6 @@ def transactions_clean():
 
     return (
         parsed_df
-        .withWatermark("event_ts", config["silver"]["watermark_delay"])
+        .withWatermark("event_ts", WATERMARK_DELAY)
         .dropDuplicates(["event_id"])
     )
