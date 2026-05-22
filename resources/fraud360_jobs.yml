@@ -25,6 +25,10 @@ resources:
             parameters:
               - "--env"
               - "${var.environment}"
+      
+      email_notifications:
+        on_failure:
+          - ${var.alert_email}
 
     fraud360_silver_stream:
       name: fraud360_${var.environment}_silver_stream
@@ -52,6 +56,12 @@ resources:
             parameters:
               - "--env"
               - "${var.environment}"
+      
+
+      mail_notifications:
+        on_failure:
+          - ${var.alert_email}
+
 
     fraud360_snowflake_stream:
       name: fraud360_${var.environment}_snowflake_stream
@@ -83,3 +93,6 @@ resources:
             parameters:
               - "--env"
               - "${var.environment}"
+      mail_notifications:
+        on_failure:
+          - ${var.alert_email}

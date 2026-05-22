@@ -15,6 +15,7 @@ jobs:
 
     env:
       DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+      DATABRICKS_AUTH_TYPE: oauth-m2m
       DATABRICKS_CLIENT_ID: ${{ secrets.DATABRICKS_CLIENT_ID }}
       DATABRICKS_CLIENT_SECRET: ${{ secrets.DATABRICKS_CLIENT_SECRET }}
 
@@ -31,6 +32,7 @@ jobs:
 
       BUNDLE_VAR_node_type_id: Standard_D4s_v5
       BUNDLE_VAR_num_workers: 1
+      BUNDLE_VAR_alert_email: ${{ secrets.ALERT_EMAIL }}
 
     steps:
       - name: Checkout repo

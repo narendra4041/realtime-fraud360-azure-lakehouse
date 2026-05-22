@@ -26,3 +26,10 @@ resources:
         SILVER_TABLE_FQN: ${var.silver_table_fqn}
 
         WATERMARK_DELAY: ${var.watermark_delay}
+      
+      notifications:
+        - email_recipients:
+          - ${var.alert_email}
+          alerts:
+          - on-update-failure
+          - on-flow-failure

@@ -45,7 +45,10 @@ variables:
   watermark_delay:
     description: Silver watermark delay
     default: "10 minutes"
-
+  
+  alert_email:
+    description: Alert email for pipeline/job failures
+    
 targets:
   dev:
     mode: development
