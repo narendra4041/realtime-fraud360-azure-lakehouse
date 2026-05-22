@@ -1,0 +1,6 @@
+sources:
+  - name: silver
+    database: FRAUD360
+    schema: SILVER
+    tables:
+      - name: TRANSACTIONS_CLEAN
