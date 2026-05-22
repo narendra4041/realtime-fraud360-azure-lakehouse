@@ -92,6 +92,8 @@ sf_warehouse = dbutils.secrets.get(
     config["snowflake"]["warehouse_secret_key"]
 )
 
+import re
+
 pem_private_key = dbutils.secrets.get(
     SECRET_SCOPE,
     config["snowflake"]["private_key_secret_key"]
@@ -100,21 +102,37 @@ pem_private_key = dbutils.secrets.get(
 pem_passphrase = dbutils.secrets.get(
     SECRET_SCOPE,
     config["snowflake"]["private_key_passphrase_secret_key"]
+).strip()
+
+pem_private_key = pem_private_key.strip()
+
+pem_private_key = re.sub(
+    r"-----BEGIN ENCRYPTED PRIVATE KEY-----\s*",
+    "-----BEGIN ENCRYPTED PRIVATE KEY-----\n",
+    pem_private_key,
 )
 
-pem_private_key = (
-    pem_private_key
-    .replace("\\r\\n", "\n")
-    .replace("\\n", "\n")
-    .replace("\r\n", "\n")
-    .replace("\r", "\n")
-    .strip()
+pem_private_key = re.sub(
+    r"\s*-----END ENCRYPTED PRIVATE KEY-----",
+    "\n-----END ENCRYPTED PRIVATE KEY-----",
+    pem_private_key,
 )
 
-pem_passphrase = pem_passphrase.strip()
+lines = pem_private_key.splitlines()
 
-print(pem_private_key.splitlines()[0])
-print(pem_private_key.splitlines()[-1])
+if len(lines) == 3:
+    body = re.sub(r"\s+", "", lines[1])
+    wrapped_body = "\n".join(
+        body[i:i + 64]
+        for i in range(0, len(body), 64)
+    )
+
+    pem_private_key = (
+        "-----BEGIN ENCRYPTED PRIVATE KEY-----\n"
+        f"{wrapped_body}\n"
+        "-----END ENCRYPTED PRIVATE KEY-----"
+    )
+
 print(f"Key lines: {len(pem_private_key.splitlines())}")
 
 
