@@ -1,0 +1,47 @@
+name: Databricks Bundle Dev Deploy
+
+on:
+  pull_request:
+    branches:
+      - main
+
+  push:
+    branches:
+      - main
+
+jobs:
+  validate-and-deploy:
+    runs-on: ubuntu-latest
+
+    env:
+      DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+      DATABRICKS_CLIENT_ID: ${{ secrets.DATABRICKS_CLIENT_ID }}
+      DATABRICKS_CLIENT_SECRET: ${{ secrets.DATABRICKS_CLIENT_SECRET }}
+
+      BUNDLE_VAR_event_hub_bootstrap_servers: ${{ secrets.EVENT_HUB_BOOTSTRAP_SERVERS }}
+      BUNDLE_VAR_event_hub_topic: fraud-transactions
+      BUNDLE_VAR_event_hub_consumer_group: databricks-bronze-cg
+      BUNDLE_VAR_event_hub_secret_scope: fraud360
+      BUNDLE_VAR_event_hub_connection_secret_key: eventhubs-conn-string
+
+      BUNDLE_VAR_bronze_table_fqn: fraud360.bronze.transactions_raw_lf
+      BUNDLE_VAR_silver_table_fqn: fraud360.silver.transactions_clean_lf
+
+      BUNDLE_VAR_watermark_delay: "10 minutes"
+
+      BUNDLE_VAR_node_type_id: Standard_D4s_v5
+      BUNDLE_VAR_num_workers: 1
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Install Databricks CLI
+        uses: databricks/setup-cli@main
+
+      - name: Validate bundle
+        run: databricks bundle validate -t dev
+
+      - name: Deploy bundle
+        if: github.event_name == 'push'
+        run: databricks bundle deploy -t dev
