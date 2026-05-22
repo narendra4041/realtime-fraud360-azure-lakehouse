@@ -31,3 +31,25 @@ silver:
   checkpoint_subpath: fraud360/silver/transactions_clean
   trigger_interval: 10 seconds
   watermark_delay: 10 minutes
+
+snowflake:
+  database: FRAUD360
+  silver_schema: SILVER
+
+  url_secret_key: snowflake-url
+  user_secret_key: snowflake-user
+  role_secret_key: snowflake-role
+  warehouse_secret_key: snowflake-warehouse
+
+  private_key_secret_key: snowflake-private-key
+  private_key_passphrase_secret_key: snowflake-private-key-passphrase
+
+silver_export:
+  source_table: transactions_clean
+  target_table: TRANSACTIONS_CLEAN
+
+  checkpoint_subpath: fraud360/snowflake/transactions_clean
+
+  trigger_interval: 30 seconds
+
+  mode: append
