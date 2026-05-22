@@ -102,6 +102,21 @@ pem_passphrase = dbutils.secrets.get(
     config["snowflake"]["private_key_passphrase_secret_key"]
 )
 
+pem_private_key = (
+    pem_private_key
+    .replace("\\r\\n", "\n")
+    .replace("\\n", "\n")
+    .replace("\r\n", "\n")
+    .replace("\r", "\n")
+    .strip()
+)
+
+pem_passphrase = pem_passphrase.strip()
+
+print(pem_private_key.splitlines()[0])
+print(pem_private_key.splitlines()[-1])
+print(f"Key lines: {len(pem_private_key.splitlines())}")
+
 
 # =========================================================
 # Decrypt PEM Private Key
