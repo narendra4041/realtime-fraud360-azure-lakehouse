@@ -152,6 +152,15 @@ private_key_pem = private_key_obj.private_bytes(
     encryption_algorithm=serialization.NoEncryption()
 ).decode("utf-8")
 
+private_key_clean = (
+    private_key_pem
+    .replace("-----BEGIN PRIVATE KEY-----", "")
+    .replace("-----END PRIVATE KEY-----", "")
+    .replace("\n", "")
+    .replace("\r", "")
+    .strip()
+)
+
 
 # =========================================================
 # Snowflake Connector Options
@@ -164,7 +173,7 @@ sf_options = {
     "sfSchema": SNOWFLAKE_SCHEMA,
     "sfWarehouse": sf_warehouse,
     "sfRole": sf_role,
-    "pem_private_key": private_key_pem,
+    "pem_private_key": private_key_clean,
 }
 
 
