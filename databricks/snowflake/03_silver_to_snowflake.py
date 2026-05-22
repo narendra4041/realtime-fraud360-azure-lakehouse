@@ -146,11 +146,11 @@ private_key_obj = serialization.load_pem_private_key(
     backend=default_backend()
 )
 
-private_key_der = private_key_obj.private_bytes(
-    encoding=serialization.Encoding.DER,
+private_key_pem = private_key_obj.private_bytes(
+    encoding=serialization.Encoding.PEM,
     format=serialization.PrivateFormat.PKCS8,
     encryption_algorithm=serialization.NoEncryption()
-)
+).decode("utf-8")
 
 
 # =========================================================
@@ -164,7 +164,7 @@ sf_options = {
     "sfSchema": SNOWFLAKE_SCHEMA,
     "sfWarehouse": sf_warehouse,
     "sfRole": sf_role,
-    "pem_private_key": private_key_der,
+    "pem_private_key": private_key_pem,
 }
 
 
