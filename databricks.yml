@@ -48,6 +48,15 @@ variables:
   
   alert_email:
     description: Alert email for pipeline/job failures
+
+  gold_customer_risk_mv_fqn:
+    description: GOLD customer risk materialized view fully qualified name
+
+  gold_merchant_risk_mv_fqn:
+    description: GOLD merchant risk materialized view fully qualified name
+
+  gold_daily_fraud_kpis_mv_fqn:
+    description: GOLD daily fraud KPIs materialized view fully qualified name
     
 targets:
   dev:

@@ -25,14 +25,19 @@ jobs:
       BUNDLE_VAR_event_hub_secret_scope: fraud360
       BUNDLE_VAR_event_hub_connection_secret_key: eventhubs-conn-string
 
-      BUNDLE_VAR_bronze_table_fqn: fraud360.bronze.transactions_raw_lf
-      BUNDLE_VAR_silver_table_fqn: fraud360.silver.transactions_clean_lf
+      BUNDLE_VAR_bronze_table_fqn: fraud360.bronze.transactions_raw
+      BUNDLE_VAR_silver_table_fqn: fraud360.silver.transactions_clean
 
       BUNDLE_VAR_watermark_delay: "10 minutes"
+
+      BUNDLE_VAR_gold_customer_risk_mv_fqn: fraud360.gold.mv_customer_risk_summary
+      BUNDLE_VAR_gold_merchant_risk_mv_fqn: fraud360.gold.mv_merchant_risk_summary
+      BUNDLE_VAR_gold_daily_fraud_kpis_mv_fqn: fraud360.gold.mv_daily_fraud_kpis
 
       BUNDLE_VAR_node_type_id: Standard_D4s_v5
       BUNDLE_VAR_num_workers: 1
       BUNDLE_VAR_alert_email: ${{ secrets.ALERT_EMAIL }}
+
 
     steps:
       - name: Checkout repo

@@ -9,6 +9,12 @@ from pyspark.sql.functions import (
     to_timestamp,
     when,
     lit,
+    count,
+    sum as spark_sum,
+    avg,
+    max as spark_max,
+    round as spark_round,
+    date
 )
 
 from pyspark.sql.types import (
@@ -21,7 +27,6 @@ from pyspark.sql.types import (
     MapType,
 )
 
-
 EVENT_HUB_BOOTSTRAP_SERVERS = spark.conf.get("EVENT_HUB_BOOTSTRAP_SERVERS")
 EVENT_HUB_TOPIC = spark.conf.get("EVENT_HUB_TOPIC")
 EVENT_HUB_CONSUMER_GROUP = spark.conf.get("EVENT_HUB_CONSUMER_GROUP")
@@ -31,6 +36,10 @@ EVENT_HUB_CONNECTION_SECRET_KEY = spark.conf.get("EVENT_HUB_CONNECTION_SECRET_KE
 BRONZE_TABLE_FQN = spark.conf.get("BRONZE_TABLE_FQN")
 SILVER_TABLE_FQN = spark.conf.get("SILVER_TABLE_FQN")
 WATERMARK_DELAY = spark.conf.get("WATERMARK_DELAY")
+
+GOLD_CUSTOMER_RISK_MV_FQN = spark.conf.get("GOLD_CUSTOMER_RISK_MV_FQN")
+GOLD_MERCHANT_RISK_MV_FQN = spark.conf.get("GOLD_MERCHANT_RISK_MV_FQN")
+GOLD_DAILY_FRAUD_KPIS_MV_FQN = spark.conf.get("GOLD_DAILY_FRAUD_KPIS_MV_FQN")
 
 
 event_hub_connection_string = dbutils.secrets.get(
@@ -145,4 +154,87 @@ def transactions_clean():
         parsed_df
         .withWatermark("event_ts", WATERMARK_DELAY)
         .dropDuplicates(["event_id"])
+    )
+
+
+@dp.materialized_view(
+    name=GOLD_CUSTOMER_RISK_MV_FQN,
+    comment="Customer-level fraud risk summary for AI analytics agent.",
+)
+def mv_customer_risk_summary():
+    df = spark.read.table(SILVER_TABLE_FQN)
+
+    return (
+        df.groupBy("customer_id")
+        .agg(
+            count("*").alias("transaction_count"),
+            spark_round(spark_sum("amount"), 2).alias("total_amount"),
+            spark_round(avg("amount"), 2).alias("avg_amount"),
+            spark_round(spark_max("amount"), 2).alias("max_amount"),
+            spark_sum(
+                col("is_suspicious_hint").cast("int")
+            ).alias("suspicious_transaction_count"),
+            count("country").alias("country_observation_count"),
+            count("merchant_category").alias("merchant_category_observation_count"),
+            spark_max("event_ts").alias("last_transaction_ts"),
+        )
+    )
+
+
+@dp.materialized_view(
+    name=GOLD_MERCHANT_RISK_MV_FQN,
+    comment="Merchant-level fraud risk summary for AI analytics agent.",
+)
+def mv_merchant_risk_summary():
+    df = spark.read.table(SILVER_TABLE_FQN)
+
+    return (
+        df.groupBy(
+            "merchant_id",
+            "merchant_name",
+            "merchant_category",
+        )
+        .agg(
+            count("*").alias("transaction_count"),
+            spark_round(spark_sum("amount"), 2).alias("total_amount"),
+            spark_round(avg("amount"), 2).alias("avg_amount"),
+            spark_sum(
+                col("is_suspicious_hint").cast("int")
+            ).alias("suspicious_transaction_count"),
+            count("customer_id").alias("customer_observation_count"),
+            count("country").alias("country_observation_count"),
+            spark_max("event_ts").alias("last_transaction_ts"),
+        )
+    )
+
+
+@dp.materialized_view(
+    name=GOLD_DAILY_FRAUD_KPIS_MV_FQN,
+    comment="Daily fraud KPI summary for AI analytics agent.",
+)
+def mv_daily_fraud_kpis():
+    df = spark.read.table(SILVER_TABLE_FQN)
+
+    return (
+        df.groupBy(date(col("event_ts")).alias("transaction_date"))
+        .agg(
+            count("*").alias("transaction_count"),
+            spark_round(spark_sum("amount"), 2).alias("total_amount"),
+            spark_round(avg("amount"), 2).alias("avg_transaction_amount"),
+            spark_sum(
+                col("is_suspicious_hint").cast("int")
+            ).alias("suspicious_transaction_count"),
+            count("customer_id").alias("customer_observation_count"),
+            count("merchant_id").alias("merchant_observation_count"),
+            spark_max("event_ts").alias("last_transaction_ts"),
+        )
+        .withColumn(
+            "suspicious_rate_pct",
+            spark_round(
+                100.0
+                * col("suspicious_transaction_count")
+                / col("transaction_count"),
+                2,
+            ),
+        )
     )

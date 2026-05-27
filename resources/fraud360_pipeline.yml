@@ -26,6 +26,10 @@ resources:
         SILVER_TABLE_FQN: ${var.silver_table_fqn}
 
         WATERMARK_DELAY: ${var.watermark_delay}
+
+        GOLD_CUSTOMER_RISK_MV_FQN: ${var.gold_customer_risk_mv_fqn}
+        GOLD_MERCHANT_RISK_MV_FQN: ${var.gold_merchant_risk_mv_fqn}
+        GOLD_DAILY_FRAUD_KPIS_MV_FQN: ${var.gold_daily_fraud_kpis_mv_fqn}
       
       notifications:
         - email_recipients:
