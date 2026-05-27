@@ -14,7 +14,7 @@ from pyspark.sql.functions import (
     avg,
     max as spark_max,
     round as spark_round,
-    date
+    to_date
 )
 
 from pyspark.sql.types import (
@@ -216,7 +216,7 @@ def mv_daily_fraud_kpis():
     df = spark.read.table(SILVER_TABLE_FQN)
 
     return (
-        df.groupBy(date(col("event_ts")).alias("transaction_date"))
+        df.groupBy(to_date(col("event_ts")).alias("transaction_date"))
         .agg(
             count("*").alias("transaction_count"),
             spark_round(spark_sum("amount"), 2).alias("total_amount"),
