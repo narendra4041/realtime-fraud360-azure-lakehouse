@@ -1,6 +1,6 @@
 # Realtime Fraud360 Azure Lakehouse
 
-Enterprise-grade realtime fraud detection data platform built using Azure Event Hubs, Databricks Lakeflow Pipelines, Unity Catalog, Snowflake, dbt, and GitHub Actions CI/CD.
+Enterprise-grade realtime fraud detection and AI analytics platform built using Azure Event Hubs, Databricks Lakeflow Declarative Pipelines, Unity Catalog, and GitHub Actions CI/CD.
 
 ---
 
@@ -10,18 +10,10 @@ Enterprise-grade realtime fraud detection data platform built using Azure Event 
 Azure Event Hubs
         ↓
 Lakeflow Declarative Pipeline
-(Bronze + Silver on Databricks)
+(Bronze + Silver + GOLD Materialized Views)
 
         ↓
-Databricks Streaming Job
-(Silver → Snowflake)
-
-        ↓
-dbt Models on Snowflake
-(GOLD Analytics Layer)
-
-        ↓
-BI / Fraud Analytics / Dashboards
+AI Analytics Agent / BI Dashboards
 ```
 
 ---
@@ -33,10 +25,10 @@ BI / Fraud Analytics / Dashboards
 | Streaming Ingestion | Azure Event Hubs (Kafka API) |
 | Stream Processing | Databricks Lakeflow Declarative Pipelines |
 | Lakehouse Storage | Delta Lake + Unity Catalog |
-| Transformation | PySpark |
-| Warehouse | Snowflake |
-| Analytics Modeling | dbt |
+| Transformations | PySpark |
+| Analytics Layer | Databricks Materialized Views |
 | CI/CD | GitHub Actions |
+| Authentication | OAuth M2M Service Principal |
 | Secrets Management | Databricks Secret Scopes |
 | Infrastructure Deployment | Databricks Asset Bundles |
 
@@ -55,11 +47,11 @@ fraud360.bronze.transactions_raw_lf
 ```
 
 Features:
-- Raw Kafka metadata
-- Event replay capability
-- Streaming ingestion
-- Record hashing
+- Raw Kafka ingestion
+- Immutable storage
+- Replay capability
 - Audit timestamps
+- Metadata tracking
 
 ---
 
@@ -77,21 +69,55 @@ Features:
 - Schema enforcement
 - Watermarking
 - Deduplication
-- Data quality checks
-- Fraud enrichment flags
+- Data quality expectations
+- Fraud enrichment
+- Streaming transformations
 
 ---
 
 ## Gold Layer
 
-Business analytics models in Snowflake using dbt.
+AI-ready materialized views for analytics and fraud intelligence.
 
-Example metrics:
-- customer transaction aggregation
-- suspicious transaction counts
-- merchant analytics
-- cross-border behavior
-- fraud KPIs
+Materialized Views:
+
+```text
+fraud360.gold.mv_customer_risk_summary
+fraud360.gold.mv_merchant_risk_summary
+fraud360.gold.mv_daily_fraud_kpis
+```
+
+Features:
+- Aggregated business KPIs
+- AI analytics optimized datasets
+- Fast querying
+- Incremental refresh
+- Unity Catalog governance
+
+---
+
+# Declarative Pipeline Architecture
+
+The project uses Databricks Lakeflow Declarative Pipelines.
+
+Example:
+
+```python
+@dp.table(
+    name=BRONZE_TABLE_FQN
+)
+def transactions_raw():
+    return kafka_df
+```
+
+Databricks manages:
+- streaming orchestration
+- checkpoints
+- table lifecycle
+- dependency graph
+- retries
+- lineage
+- refresh execution
 
 ---
 
@@ -100,34 +126,19 @@ Example metrics:
 ```text
 realtime-fraud360-azure-lakehouse/
 │
-├── configs/
-│   └── dev/
-│       └── streaming_config.yaml
-│
 ├── databricks/
-│   ├── bronze/
-│   ├── silver/
-│   ├── snowflake/
 │   └── pipelines/
-│
-├── dbt_fraud360/
-│   ├── models/
-│   └── dbt_project.yml
+│       └── fraud360_bronze_silver_pipeline.py
 │
 ├── resources/
-│   ├── fraud360_jobs.yml
 │   └── fraud360_pipeline.yml
 │
 ├── .github/
 │   └── workflows/
 │       └── databricks-bundle-dev.yml
 │
+├── .databricksignore
 ├── databricks.yml
-├── .gitignore
-├── pyproject.toml
-├── uv.lock
-├── requirements.txt
-│
 └── README.md
 ```
 
@@ -145,78 +156,64 @@ fraud360_dev_bronze_silver_pipeline
 
 Responsibilities:
 - Event Hub ingestion
-- Bronze table creation
-- Silver transformation
-- Continuous streaming processing
+- Bronze streaming table creation
+- Silver streaming transformations
+- GOLD materialized view creation
+- AI-ready analytics datasets
 
 ---
 
-## Databricks Job
+# AI Analytics GOLD Materialized Views
 
-Job:
+## Customer Risk Summary
+
+Materialized View:
 
 ```text
-fraud360_dev_snowflake_stream
+fraud360.gold.mv_customer_risk_summary
 ```
 
-Responsibilities:
-- Stream Silver Delta data
-- Export to Snowflake continuously
+Metrics:
+- transaction counts
+- suspicious transaction counts
+- total spend
+- average transaction amount
+- merchant diversity
+- country diversity
 
 ---
 
-# Snowflake Architecture
+## Merchant Risk Summary
 
-Database:
-
-```text
-FRAUD360
-```
-
-Schemas:
+Materialized View:
 
 ```text
-SILVER
-GOLD
+fraud360.gold.mv_merchant_risk_summary
 ```
 
-Warehouse:
-
-```text
-FRAUD360_WH
-```
+Metrics:
+- merchant transaction volume
+- suspicious transaction volume
+- customer diversity
+- country diversity
+- fraud exposure indicators
 
 ---
 
-# CI/CD
+## Daily Fraud KPIs
 
-GitHub Actions workflow:
+Materialized View:
 
 ```text
-.github/workflows/databricks-bundle-dev.yml
+fraud360.gold.mv_daily_fraud_kpis
 ```
 
-CI/CD responsibilities:
-- Validate Databricks bundles
-- Deploy Lakeflow pipelines
-- Deploy Databricks jobs
-- Run dbt models
-- Execute dbt tests
-
----
-
-# Authentication & Security
-
-## Databricks
-
-- OAuth M2M Service Principal Authentication
-- Unity Catalog RBAC
-- Secret Scopes
-
-## Snowflake
-
-- RSA Key Pair Authentication
-- Role-based access control
+Metrics:
+- daily transaction volume
+- suspicious transaction rate
+- daily fraud KPIs
+- customer activity
+- merchant activity
 
 ---
 
@@ -224,38 +221,102 @@ CI/CD responsibilities:
 
 ## Watermarking
 
-Used for late-arriving event handling.
-
-Example:
-
 ```python
 .withWatermark("event_ts", "10 minutes")
 ```
+
+Used for:
+- late event handling
+- state cleanup
+- streaming optimization
 
 ---
 
 ## Deduplication
 
-Implemented using:
-
 ```python
 .dropDuplicates(["event_id"])
 ```
+
+Used for:
+- exactly-once semantics
+- replay protection
+- duplicate prevention
 
 ---
 
 # Data Quality Rules
 
-Silver layer validations:
+Silver layer expectations:
 
+```python
+@dp.expect_or_drop(
+    "valid_amount",
+    "amount > 0"
+)
+```
+
+Implemented rules:
 - valid_event_id
 - valid_transaction_id
 - valid_amount
 
-Example:
+---
 
-```python
-@dp.expect_or_drop("valid_amount", "amount > 0")
+# CI/CD Architecture
+
+GitHub Actions workflow:
+
+```text
+.github/workflows/databricks-bundle-dev.yml
+```
+
+Responsibilities:
+- Validate Databricks bundles
+- Deploy pipelines
+- Update Databricks workspace resources
+- Run deployment automation
+
+---
+
+# Deployment Flow
+
+```text
+git push
+    ↓
+GitHub Actions
+    ↓
+Databricks Bundle Deploy
+    ↓
+Databricks Workspace
+    ↓
+Lakeflow Pipeline Updated
+```
+
+---
+
+# GitHub Secrets Required
+
+## Databricks
+
+```text
+DATABRICKS_HOST
+DATABRICKS_CLIENT_ID
+DATABRICKS_CLIENT_SECRET
+```
+
+---
+
+# Bundle Variables
+
+Examples:
+
+```text
+BUNDLE_VAR_event_hub_bootstrap_servers
+BUNDLE_VAR_event_hub_topic
+BUNDLE_VAR_bronze_table_fqn
+BUNDLE_VAR_silver_table_fqn
+BUNDLE_VAR_gold_customer_risk_mv_fqn
 ```
 
 ---
@@ -270,7 +331,7 @@ uv sync
 
 ---
 
-## Databricks CLI
+## Databricks Login
 
 ```bash
 databricks auth login --host <workspace-url>
@@ -302,91 +363,31 @@ databricks bundle run fraud360_bronze_silver_pipeline -t dev
 
 ---
 
-# dbt Commands
-
-## Debug
-
-```bash
-uv run dbt debug --profiles-dir profiles
-```
-
----
-
-## Run GOLD Models
-
-```bash
-uv run dbt run --select gold --profiles-dir profiles
-```
-
----
-
-## Run Tests
-
-```bash
-uv run dbt test --select gold --profiles-dir profiles
-```
-
----
-
-# GitHub Secrets Required
+# Security
 
 ## Databricks
 
-```text
-DATABRICKS_HOST
-DATABRICKS_CLIENT_ID
-DATABRICKS_CLIENT_SECRET
-```
-
----
-
-## Snowflake
-
-```text
-SNOWFLAKE_ACCOUNT
-SNOWFLAKE_USER
-SNOWFLAKE_PRIVATE_KEY
-SNOWFLAKE_PRIVATE_KEY_PASSPHRASE
-SNOWFLAKE_ROLE
-SNOWFLAKE_WAREHOUSE
-```
-
----
-
-# Bundle Variables
-
-Provided using:
-
-```text
-BUNDLE_VAR_<variable_name>
-```
-
-Examples:
-
-```text
-BUNDLE_VAR_event_hub_bootstrap_servers
-BUNDLE_VAR_bronze_table_fqn
-BUNDLE_VAR_silver_table_fqn
-```
+- OAuth M2M Service Principal
+- Unity Catalog RBAC
+- Secret Scopes
 
 ---
 
 # Future Improvements
 
-- Production environment target
-- Automated pipeline restart policies
-- Observability dashboards
-- Data quality monitoring
+- Production deployment target
 - Great Expectations integration
-- Terraform infrastructure provisioning
-- Alerting integrations
-- CDC ingestion support
+- ML fraud scoring
 - Feature store integration
+- Terraform infrastructure provisioning
+- Databricks Genie integration
+- AI semantic layer
+- Observability dashboards
+- Automated restart policies
+- CDC ingestion pipelines
 
 ---
 
 # Author
 
 Narendra Reddy
-
----
